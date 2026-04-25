@@ -1,0 +1,217 @@
+# golangci-lint 配置文件
+# 官方文档: https://golangci-lint.run/usage/configuration/
+
+# ============================================================
+# run: 运行参数
+# ============================================================
+run:
+  # timeout: 单次检查的超时时间，默认 1m
+  # 设置较长避免大项目超时
+  timeout: 5m
+
+  # tests: 是否检查测试文件 (*_test.go)
+  # true = 检查测试文件中的问题
+  tests: true
+
+  # modules-download-mode: 模块下载模式
+  # readonly = 只读模式，不会修改 go.mod/go.sum
+  modules-download-mode: readonly
+
+  # 启用所有 linters（不建议在生产环境开启所有检查）
+  # enable-all: true
+
+  # 跳过某些 linters（优先级高于 enable-all）
+  # skip-dirs:
+  #   - vendor
+
+  # 跳过某些文件的检查
+  # skip-files:
+  #   - ".*_gen\\.go$"
+
+# ============================================================
+# linters: 选择要启用的检查器
+# ============================================================
+linters:
+  enable:
+    # ----- 基础问题检查 -----
+    - errcheck # 检查未处理的错误，如 _ = os.Open()
+    - gosimple # 建议简化代码，如不必要的类型转换
+    - govet # 静态分析，如 Printf 参数不匹配
+    - staticcheck # 静态检查，如空分支、错误的 mutex 使用
+    - unused # 检测未使用的变量、函数、导入
+    - gofmt # 检查是否已用 gofmt 格式化
+
+    # ----- 最佳实践 -----
+    - errorlint # 检查错误包装是否正确（fmt.Errorf %w）
+    - noctx # 检查 HTTP handler 是否传递 context
+    - nilerr # 检查是否返回 nil error 后又立即检查
+    - ifshort # 检查 if 语句是否可简化
+    - dupl # 检测重复代码
+
+    # ----- 性能优化 -----
+    - prealloc # 建议在循环内预分配 slice
+    - ineffassign # 检测无效的赋值（如赋值后未使用）
+    - meerr # 合并多次错误赋值
+
+    # ----- 命名规范 -----
+    - misspell # 检查拼写错误
+    - varnamelen # 检查变量名长度（太短如 i, x 无意义）
+    - golint # 检查命名规范（exported 函数需要注释）
+
+    # ----- 代码风格 -----
+    - wsl # 空行规范（强制空行分隔代码块）
+    - nakedret # 检查是否有裸露的 return 语句
+    - gocritic # 提供多种代码风格建议
+
+  disable:
+    # 过于严格或已废弃的检查器
+    - exhaustivestruct # 检查结构体字段是否全部初始化
+    - interfacer # 检查是否应使用接口（过于严格）
+    - deadcode # 已废弃，用 unused 代替
+
+# ============================================================
+# linters-settings: 各检查器的详细配置
+# ============================================================
+linters-settings:
+  # errcheck: 错误检查配置
+  errcheck:
+    # check-type-assertions: 检查类型断言是否检查错误
+    # 如 x.(type) 应检查第二个返回值
+    check-type-assertions: true
+
+    # check-blank: 检查是否有忽略错误的空白符 _
+    # 如 f, _ := os.Open() 应改为检查错误
+    check-blank: true
+
+  # govet: 静态分析配置
+  govet:
+    # enable-all: 启用所有 govet 检查
+    enable-all: true
+
+    # disable: 禁用某些检查
+    disable:
+      # fieldalignment: 检查结构体字段对齐
+      # 开启可能优化性能，但需要手动调整
+      - fieldalignment
+
+  # gofmt: 代码格式化配置
+  gofmt:
+    # simplify: 简化代码（如移除冗余括号）
+    simplify: true
+
+  # errorlint: 错误处理检查
+  errorlint:
+    # errorf: 检查是否使用 fmt.Errorf 而非 errors.New
+    errorf: true
+
+    # wraps: 检查 errors.Wrap/is 的使用是否正确
+    wraps: true
+
+  # cyclop: 圈复杂度检查
+  cyclop:
+    # max-complexity: 函数最大圈复杂度
+    # 圈复杂度 = 分支语句(if/for/switch)数量 + 1
+    # 超过此值会报警告
+    max-complexity: 15
+
+  # gocyclo: 同 cyclop，另一种复杂度检查
+  gocyclo:
+    min-complexity: 15
+
+  # nolintlice: nolint 注释检查
+  nolintlice:
+    # allow-leading-space: 是否允许 //nolint 前面有空格
+    allow-leading-space: false
+
+    # allow-unused-args: 是否允许 nolint 用于未使用的参数
+    allow-unused-args: false
+
+  # varnamelen: 变量名长度检查
+  varnamelen:
+    # min-name-length: 最小变量名长度
+    # 避免单字母变量（for 循环除外）
+    min-name-length: 2
+
+    # max-name-length: 最大变量名长度
+    max-name-length: 40
+
+    # check-receiver: 检查 receiver 变量名
+    check-receiver: true
+
+    # check-return: 检查返回值变量名
+    check-return: true
+
+    # check-type-param: 检查类型参数名
+    check-type-param: true
+
+  # misspell: 拼写检查
+  misspell:
+    # locale: 拼写检查的语言区域
+    # 可选: US, UK, AUTO
+    locale: US
+
+  # wsl: 空行规则
+  wsl:
+    # force-case-casing: 强制括号位置
+    # 如 switch 语句后的大括号位置
+    force-case-casing: true
+
+    # force-err-cuddling: 强制错误与 if 在同一行
+    force-err-cuddling: false
+
+  # gocritic: 代码风格检查
+  gocritic:
+    # enabled-checks: 启用的具体检查项
+    # enabled-checks:
+    #   - paramTypeComplaint
+
+    # disabled-checks: 禁用的检查项
+    # disabled-checks:
+    #   - commentedOutCode
+
+# ============================================================
+# issues: 问题输出配置
+# ============================================================
+issues:
+  # exclude-use-default: 是否使用默认的排除规则
+  # false = 显示所有问题，true = 隐藏部分已知问题
+  exclude-use-default: false
+
+  # max-issues-per-linter: 每个 linter 最多报告的问题数
+  max-issues-per-linter: 50
+
+  # max-same-issues: 相同问题的最大报告次数
+  # 避免重复输出相同的错误
+  max-same-issues: 10
+
+  # exclude-rules: 排除特定规则/文件的检查
+  exclude-rules:
+    # 排除测试文件中的 errcheck 检查
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec # 安全扫描，测试代码通常不需要
+
+    # 排除某些函数的检查
+    - text: 'noctx'
+      linters:
+        - noctx
+
+    # 排除 vendor 目录
+    - path: vendor/
+      linters:
+        - all
+
+# ============================================================
+# output: 输出格式配置
+# ============================================================
+output:
+  # format: 输出格式
+  # 可选: colored-line-number, colorful-line-number, json, text, line-number, checkstyle, csv, codeclimate,html,junit,github-actions,teamcity,sarif
+  format: colored-line-number
+
+  # print-issued-lines: 是否打印问题所在行
+  print-issued-lines: true
+
+  # print-linter-name: 是否打印 linter 名称
+  print-linter-name: true
