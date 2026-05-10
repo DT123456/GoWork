@@ -1,0 +1,64 @@
+# ============================================================
+# .dockerignore - Docker 构建时排除的文件
+# ============================================================
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docker 配置（不需要发送到镜像）
+docker/
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+.env
+
+# 测试文件
+*_test.go
+_test/
+tests/
+*.test
+
+# 文档
+*.md
+docs/
+
+# 临时文件
+tmp/
+temp/
+*.log
+*.tmp
+*.pid
+
+# 本地配置文件
+.env.local
+.env.development
+.env.production
+config.local.*
+
+# 隐藏文件（排除必要文件外）
+.*
+!.env.example
+
+# 排除 vendor（使用 go mod download）
+vendor/
+
+# 构建产物
+/bin/
+/dist/
+*.exe
+*.dll
+*.so
+*.a
+
+# 其他
+*.iml
+*.ipr
+*.iws

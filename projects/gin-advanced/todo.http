@@ -1,0 +1,42 @@
+@api = http://localhost:8080
+### 注册
+POST {{api}}/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "123456"
+}
+
+### 登录
+POST {{api}}/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "123456"
+}
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOjEsImV4cCI6MTc3NzMwNDY3N30.nOJrQr7FsOi3nw-GAOfdA0XuDnorXGBigY3i9CARo0s
+
+### 获取用户信息 (需要 token)
+GET {{api}}/user/info/1
+token: {{token}}
+
+### 修改用户信息 (需要 token)
+PUT {{api}}/user/update/1
+Content-Type: application/json
+token: {{token}}
+
+{
+  "username": "testuser1",
+  "password": "123456"
+}
+
+
+### 删除用户 (需要 token)
+DELETE {{api}}/user/delete/1
+token: {{token}}
+
+### 创建默认角色和权限
+GET {{api}}/admin/seed

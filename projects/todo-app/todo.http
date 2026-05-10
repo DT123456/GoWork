@@ -1,0 +1,17 @@
+### 1. 获取所有 Todo
+GET http://localhost:8080/todos
+
+### 2. 新增 Todo
+POST http://localhost:8080/todos
+Content-Type: application/json
+
+{"title":"学习Gin框架2", "description":"学习Gin框架的基本用法2"}
+
+### 3. 修改 Todo 状态
+PUT http://localhost:8080/todos/1
+Content-Type: application/json
+
+{"completed":true}
+
+### 4. 删除 Todo
+DELETE http://localhost:8080/todos/1

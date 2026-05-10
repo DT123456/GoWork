@@ -1,0 +1,181 @@
+# ============================================================
+# GoWork Docker 环境配置
+# ============================================================
+# 作者: GoWork
+# 描述: 统一 Docker 开发环境，多个项目共享基础设施
+#
+# 架构说明:
+#   - MySQL/Redis/Postgres: 基础设施服务，所有项目共享
+#   - go-dev: Go 开发容器，支持热重载
+#   - 所有服务在同一网络 (gowork_net)，容器间可通过容器名通信
+#
+# 使用方法:
+#   cd GoWork/docker
+#   docker compose up -d      # 启动所有服务
+#   docker compose down       # 停止所有服务
+#   docker compose logs -f    # 查看日志
+# ============================================================
+
+# Docker Compose 版本（推荐使用 3.8+）
+version: '3.8'
+
+# ============================================================
+# 服务定义
+# ============================================================
+services:
+  # ========================================
+  # 基础设施层 - 数据库服务
+  # ========================================
+
+  # ---------- MySQL 数据库 ----------
+  mysql:
+    # 基础镜像版本
+    image: mysql:8.0
+
+    # 容器名称（唯一，用于容器间通信）
+    container_name: gowork_mysql
+
+    # 端口映射: 宿主机:容器
+    # 格式: "宿主机端口:容器端口"
+    ports:
+      - '3306:3306'
+
+    # 环境变量（MySQL 配置）
+    environment:
+      # MySQL root 用户密码
+      MYSQL_ROOT_PASSWORD: root123
+      # 初始化时创建的数据库名
+      MYSQL_DATABASE: gowork
+      # 时区设置（上海时区）
+      TZ: Asia/Shanghai
+
+    # 数据卷挂载（持久化数据）
+    # 格式: "卷名:容器内路径"
+    volumes:
+      # mysql_data 是命名卷，数据持久化到 Docker 管理的存储
+      # 容器删除后数据不会丢失
+      - mysql_data:/var/lib/mysql
+
+    # 网络配置
+    networks:
+      # 加入 gowork_net 网络
+      # 其他容器可通过 gowork_mysql 访问此服务
+      - gowork_net
+
+    # 重启策略
+    # unless-stopped: 容器退出时自动重启（除非手动停止）
+    restart: unless-stopped
+
+  # ---------- Redis 缓存 ----------
+  redis:
+    image: redis:7-alpine
+    container_name: gowork_redis
+
+    ports:
+      - '6379:6379'
+
+    volumes:
+      # Redis 数据持久化目录
+      - redis_data:/data
+
+    networks:
+      - gowork_net
+
+    restart: unless-stopped
+
+  # ---------- PostgreSQL 数据库 ----------
+  postgres:
+    image: postgres:16-alpine
+    container_name: gowork_postgres
+
+    ports:
+      - '5432:5432'
+
+    environment:
+      # PostgreSQL 默认用户是 postgres
+      POSTGRES_PASSWORD: postgres123
+      TZ: Asia/Shanghai
+
+    volumes:
+      # PostgreSQL 数据存储目录
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - gowork_net
+
+    restart: unless-stopped
+
+  # ========================================
+  # 应用层 - Go 开发环境
+  # ========================================
+  go-dev:
+    # 构建配置
+    build:
+      # 构建上下文（Dockerfile 所在目录）
+      context: .
+      # 指定使用的 Dockerfile
+      dockerfile: Dockerfile.dev
+
+    container_name: go_dev
+
+    # 端口映射
+    # 8080: Go 应用默认端口
+    # 2345: Delve 调试器端口（用于 VSCode 远程调试）
+    ports:
+      - '8080:8080'
+      - '2345:2345'
+
+    # 环境变量
+    environment:
+      # 时区（确保容器内时间正确）
+      - TZ=Asia/Shanghai
+      # HTTP/HTTPS 代理（解决 GitHub 访问问题）
+      # 修改为你的代理地址和端口
+      - HTTP_PROXY=http://host.docker.internal:7890
+      - HTTPS_PROXY=http://host.docker.internal:7890
+
+    # 数据卷
+    volumes:
+      # 项目代码挂载（gotour 项目目录）
+      - g:/GoWork/projects/gin-advanced:/app
+      # Go 模块缓存（避免每次重新下载依赖）
+      - go_cache:/go/pkg/mod
+
+    # 服务依赖（启动顺序）
+    # go-dev 会在 mysql 和 redis 之后启动
+    depends_on:
+      - mysql
+      - redis
+
+    networks:
+      - gowork_net
+
+    restart: unless-stopped
+
+# ============================================================
+# 网络配置
+# ============================================================
+# Docker 网络用于容器间通信
+# bridge: 桥接模式，容器间可通过容器名访问
+networks:
+  gowork_net:
+    driver: bridge
+
+# ============================================================
+# 数据卷配置
+# ============================================================
+# 命名卷：数据持久化存储
+# 优点：
+#   1. 容器删除后数据不丢失
+#   2. 可跨容器共享
+#   3. Docker 管理，易于备份
+volumes:
+  # MySQL 数据卷
+  mysql_data:
+    # 无额外配置，使用默认配置
+  # PostgreSQL 数据卷
+  postgres_data:
+  # Redis 数据卷
+  redis_data:
+  # Go 模块缓存卷（加速依赖下载）
+  go_cache:

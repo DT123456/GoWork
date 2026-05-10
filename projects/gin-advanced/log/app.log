@@ -1,0 +1,10 @@
+{"level":"fatal","time":"2026-04-26T23:29:40.505+0800","line":"gin-advanced/main.go:13","msg":"数据库连接失败","module":"mysql","host":"127.0.0.1","port":"3306","database":"gin_adv123","error":"Error 1049 (42000): Unknown database 'gin_adv123'"}
+{"level":"info","time":"2026-04-26T23:30:36.855+0800","line":"gin-advanced/main.go:13","msg":"数据库连接成功","module":"mysql","host":"127.0.0.1","port":"3306","database":"gin_adv"}
+{"level":"info","time":"2026-04-26T23:33:52.228+0800","line":"gin@v1.12.0/context.go:192","msg":"用户登录成功","username":"testuser"}
+{"level":"info","time":"2026-04-26T23:43:22.770+0800","line":"gin-advanced/main.go:13","msg":"数据库连接成功","module":"mysql","host":"127.0.0.1","port":"3306","database":"gin_adv"}
+{"level":"info","time":"2026-04-26T23:44:37.992+0800","line":"gin@v1.12.0/context.go:192","msg":"用户登录成功","username":"testuser"}
+{"level":"info","time":"2026-04-26T23:49:36.117+0800","line":"gin-advanced/main.go:13","msg":"数据库连接成功","module":"mysql","host":"127.0.0.1","port":"3306","database":"gin_adv"}
+{"level":"info","time":"2026-04-26T23:52:11.212+0800","line":"gin-advanced/main.go:13","msg":"数据库连接成功","module":"mysql","host":"127.0.0.1","port":"3306","database":"gin_adv"}
+{"level":"info","time":"2026-05-02T15:28:34.911+0800","line":"gin-advanced/main.go:15","msg":"数据库连接成功","module":"mysql","host":"127.0.0.1","port":"3306","database":"gin_adv"}
+{"level":"info","time":"2026-05-02T15:28:34.971+0800","line":"gin-advanced/main.go:16","msg":"Redis连接成功","module":"redis","addr":"127.0.0.1:6379"}
+{"level":"info","time":"2026-05-02T15:28:35.600+0800","line":"crontab/task.go:60","msg":"定时任务管理器已启动"}

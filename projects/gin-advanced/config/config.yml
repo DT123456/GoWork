@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  username: root
+  password: root123
+  dbname: gin_adv
+
+redis:
+  addr: 127.0.0.1:6379
+  password: ''
+
+jwt:
+  secret: my-secret-key
+  expire: 24
+
+log:
+  level: debug
+  file: logs/app.log
+
+# OSS对象存储配置
+oss:
+  enabled: false
+  endpoint: ""                     # OSS endpoint，如：oss-cn-beijing.aliyuncs.com
+  access_key: ""                   # 阿里云AccessKey ID
+  secret_key: ""                   # 阿里云AccessKey Secret
+  bucket: ""                       # Bucket名称
+  domain: ""                       # CDN域名（可选），如：https://cdn.example.com
+  save_path: "uploads/"            # 上传路径前缀
