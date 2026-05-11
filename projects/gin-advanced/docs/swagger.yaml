@@ -1,0 +1,1235 @@
+basePath: /
+definitions:
+  api.AccessLogsResponse:
+    properties:
+      list: {}
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  api.AddPermissionRequest:
+    properties:
+      permissionID:
+        type: integer
+      roleID:
+        type: integer
+    required:
+    - permissionID
+    - roleID
+    type: object
+  api.AssignRoleRequest:
+    properties:
+      roleID:
+        type: integer
+      userID:
+        type: integer
+    required:
+    - roleID
+    - userID
+    type: object
+  api.CaptchaResponse:
+    properties:
+      captcha_id:
+        type: string
+      image:
+        type: string
+    type: object
+  api.CleanAccessLogsRequest:
+    properties:
+      days:
+        type: integer
+    type: object
+  api.DeleteSystemLogsRequest:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    type: object
+  api.LoginRequest:
+    properties:
+      captcha:
+        type: string
+      captcha_id:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - captcha
+    - captcha_id
+    - password
+    - username
+    type: object
+  api.LoginResponse:
+    properties:
+      nickname:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+      roles:
+        items:
+          type: string
+        type: array
+      token:
+        type: string
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  api.RegisterRequest:
+    properties:
+      captcha:
+        type: string
+      captcha_id:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - captcha
+    - captcha_id
+    - password
+    - username
+    type: object
+  api.SetRolePermissionsRequest:
+    properties:
+      permission_ids:
+        items:
+          type: integer
+        type: array
+      role_id:
+        type: integer
+    required:
+    - role_id
+    type: object
+  api.SystemLogsResponse:
+    properties:
+      list: {}
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  api.UploadConfigResponse:
+    properties:
+      allowed_avatar:
+        items:
+          type: string
+        type: array
+      allowed_ext:
+        items:
+          type: string
+        type: array
+      allowed_image:
+        items:
+          type: string
+        type: array
+      max_avatar_size:
+        type: integer
+      max_image_size:
+        type: integer
+      max_size:
+        type: integer
+      oss_enabled:
+        type: boolean
+    type: object
+  api.VerifyCaptchaRequest:
+    properties:
+      captcha_id:
+        type: string
+      code:
+        type: string
+    required:
+    - captcha_id
+    - code
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.Permission:
+    properties:
+      created_at:
+        type: integer
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        description: 权限描述
+        type: string
+      id:
+        type: integer
+      method:
+        description: 请求方法 GET/POST/PUT/DELETE
+        type: string
+      name:
+        description: 权限名称，如 "user:create"
+        type: string
+      path:
+        description: 请求路径
+        type: string
+      updated_at:
+        type: integer
+    type: object
+  models.Role:
+    properties:
+      created_at:
+        type: integer
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        description: 角色描述
+        type: string
+      id:
+        type: integer
+      name:
+        description: 角色名称
+        type: string
+      permissions:
+        description: 权限关联
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
+      updated_at:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: integer
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      nickname:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
+      updated_at:
+        type: integer
+      username:
+        type: string
+    type: object
+  utils.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Gin-Advanced RESTful API 文档
+  title: Gin-Advanced API
+  version: "1.0"
+paths:
+  /admin/logs/access:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定天数之前的访问日志
+      parameters:
+      - description: 保留天数
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/api.CleanAccessLogsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 清理访问日志
+      tags:
+      - 访问日志
+    get:
+      description: 分页获取访问日志，支持按用户、请求方法、路径等条件筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 请求方法
+        in: query
+        name: method
+        type: string
+      - description: 请求路径
+        in: query
+        name: path
+        type: string
+      - description: IP地址
+        in: query
+        name: ip
+        type: string
+      - description: 状态码
+        in: query
+        name: status_code
+        type: integer
+      - description: 开始时间戳
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间戳
+        in: query
+        name: end_time
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.AccessLogsResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取访问日志列表
+      tags:
+      - 访问日志
+  /admin/logs/access/stats:
+    get:
+      description: 统计指定时间范围内的访问日志数量和趋势
+      parameters:
+      - description: 开始时间戳
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间戳
+        in: query
+        name: end_time
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取访问统计
+      tags:
+      - 访问日志
+  /admin/logs/system:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的系统日志
+      parameters:
+      - description: 日志ID列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.DeleteSystemLogsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除系统日志
+      tags:
+      - 系统日志
+    get:
+      description: 分页获取系统日志，支持按用户、模块、操作等条件筛选
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 用户ID
+        in: query
+        name: user_id
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 操作类型
+        in: query
+        name: action
+        type: string
+      - description: 模块
+        in: query
+        name: module
+        type: string
+      - description: 状态码
+        in: query
+        name: status
+        type: integer
+      - description: 开始时间戳
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间戳
+        in: query
+        name: end_time
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.SystemLogsResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取系统日志列表
+      tags:
+      - 系统日志
+  /admin/logs/system/{id}:
+    get:
+      description: 根据ID获取单条系统日志的详细信息
+      parameters:
+      - description: 日志ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取系统日志详情
+      tags:
+      - 系统日志
+  /admin/logs/system/stats:
+    get:
+      description: 统计指定时间范围内的系统日志数量
+      parameters:
+      - description: 开始时间戳
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间戳
+        in: query
+        name: end_time
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取系统日志统计
+      tags:
+      - 系统日志
+  /admin/permissions:
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的权限
+      parameters:
+      - description: 权限信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Permission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Permission'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建权限
+      tags:
+      - 角色管理
+  /admin/permissions/{id}:
+    delete:
+      description: 删除指定权限
+      parameters:
+      - description: 权限ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除权限
+      tags:
+      - 角色管理
+    put:
+      consumes:
+      - application/json
+      description: 更新指定权限的信息
+      parameters:
+      - description: 权限信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Permission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Permission'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新权限
+      tags:
+      - 角色管理
+  /admin/roles:
+    get:
+      description: 获取所有角色的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Role'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取角色列表
+      tags:
+      - 角色管理
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的角色
+      parameters:
+      - description: 角色信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Role'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Role'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建角色
+      tags:
+      - 角色管理
+  /admin/roles/assign:
+    post:
+      consumes:
+      - application/json
+      description: 为指定用户分配一个角色
+      parameters:
+      - description: 分配信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.AssignRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 给用户分配角色
+      tags:
+      - 角色管理
+  /admin/roles/permission:
+    get:
+      description: 获取系统中所有可用的权限列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Permission'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取所有权限
+      tags:
+      - 角色管理
+    post:
+      consumes:
+      - application/json
+      description: 为指定角色添加一个权限
+      parameters:
+      - description: 权限信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.AddPermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 给角色添加权限
+      tags:
+      - 角色管理
+    put:
+      consumes:
+      - application/json
+      description: 替换指定角色的所有权限
+      parameters:
+      - description: 权限列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.SetRolePermissionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 批量设置角色权限
+      tags:
+      - 角色管理
+  /admin/seed:
+    get:
+      description: 创建默认的admin角色和权限，并分配给admin用户
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 初始化默认角色和权限
+      tags:
+      - 角色管理
+  /captcha:
+    get:
+      description: 获取验证码图片，返回验证码ID和Base64编码的图片
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.CaptchaResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取图形验证码
+      tags:
+      - 验证码
+  /captcha/verify:
+    post:
+      consumes:
+      - application/json
+      description: 验证用户输入的验证码是否正确
+      parameters:
+      - description: 验证码信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.VerifyCaptchaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 验证验证码
+      tags:
+      - 验证码
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录接口，需要用户名、密码和验证码，返回JWT token
+      parameters:
+      - description: 登录信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 用户登录
+      tags:
+      - 用户
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: 用户注册接口，需要提供用户名、密码和验证码
+      parameters:
+      - description: 注册信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/api.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 用户注册
+      tags:
+      - 用户
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传通用文件到服务器或OSS
+      parameters:
+      - description: 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 上传文件
+      tags:
+      - 文件上传
+  /upload/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传用户头像图片
+      parameters:
+      - description: 头像文件
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 上传头像
+      tags:
+      - 文件上传
+  /upload/config:
+    get:
+      description: 获取文件上传的配置信息，包括大小限制和允许的文件类型
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.UploadConfigResponse'
+              type: object
+      summary: 获取上传配置
+      tags:
+      - 文件上传
+  /upload/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上传图片到服务器或OSS
+      parameters:
+      - description: 图片文件
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 上传图片
+      tags:
+      - 文件上传
+  /upload/multiple:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 一次上传多个文件
+      parameters:
+      - description: 文件列表
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 批量上传文件
+      tags:
+      - 文件上传
+  /user/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定用户
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除用户
+      tags:
+      - 用户
+  /user/info/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据用户ID获取用户详细信息
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取用户信息
+      tags:
+      - 用户
+  /user/update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 更新指定用户的详细信息
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 用户信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新用户信息
+      tags:
+      - 用户
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: token
+    type: apiKey
+swagger: "2.0"

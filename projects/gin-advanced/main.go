@@ -8,6 +8,14 @@ import (
 	"gin-advanced/utils"
 )
 
+// @title Gin-Advanced API
+// @version 1.0
+// @description Gin-Advanced RESTful API 文档
+// @host localhost:8080
+// @basePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name token
 func main() {
 	// 初始化
 	core.InitViper()

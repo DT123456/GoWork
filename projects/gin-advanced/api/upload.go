@@ -14,7 +14,16 @@ const (
 	MaxImageSize = 5 * 1024 * 1024
 )
 
-// UploadFile 上传文件
+// UploadFile
+// @Summary 上传文件
+// @Description 上传通用文件到服务器或OSS
+// @Tags 文件上传
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "文件"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /upload [post]
 func UploadFile(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -50,7 +59,16 @@ func UploadFile(c *gin.Context) {
 	utils.Success(c, result)
 }
 
-// UploadImage 上传图片
+// UploadImage
+// @Summary 上传图片
+// @Description 上传图片到服务器或OSS
+// @Tags 文件上传
+// @Accept multipart/form-data
+// @Produce json
+// @Param image formData file true "图片文件"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /upload/image [post]
 func UploadImage(c *gin.Context) {
 	file, err := c.FormFile("image")
 	if err != nil {
@@ -86,7 +104,16 @@ func UploadImage(c *gin.Context) {
 	utils.Success(c, result)
 }
 
-// UploadAvatar 上传头像
+// UploadAvatar
+// @Summary 上传头像
+// @Description 上传用户头像图片
+// @Tags 文件上传
+// @Accept multipart/form-data
+// @Produce json
+// @Param avatar formData file true "头像文件"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /upload/avatar [post]
 func UploadAvatar(c *gin.Context) {
 	file, err := c.FormFile("avatar")
 	if err != nil {
@@ -122,7 +149,16 @@ func UploadAvatar(c *gin.Context) {
 	utils.Success(c, result)
 }
 
-// UploadFiles 批量上传文件
+// UploadFiles
+// @Summary 批量上传文件
+// @Description 一次上传多个文件
+// @Tags 文件上传
+// @Accept multipart/form-data
+// @Produce json
+// @Param files formData file true "文件列表"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /upload/multiple [post]
 func UploadFiles(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -184,16 +220,33 @@ func UploadFiles(c *gin.Context) {
 	})
 }
 
-// GetUploadConfig 获取上传配置
+// UploadConfigResponse 上传配置响应
+type UploadConfigResponse struct {
+	OSSEnabled    bool     `json:"oss_enabled"`
+	MaxSize       int      `json:"max_size"`
+	MaxImageSize  int      `json:"max_image_size"`
+	MaxAvatarSize int      `json:"max_avatar_size"`
+	AllowedExt    []string `json:"allowed_ext"`
+	AllowedImage  []string `json:"allowed_image"`
+	AllowedAvatar []string `json:"allowed_avatar"`
+}
+
+// GetUploadConfig
+// @Summary 获取上传配置
+// @Description 获取文件上传的配置信息，包括大小限制和允许的文件类型
+// @Tags 文件上传
+// @Produce json
+// @Success 200 {object} utils.Response{data=UploadConfigResponse}
+// @Router /upload/config [get]
 func GetUploadConfig(c *gin.Context) {
-	config := map[string]interface{}{
-		"oss_enabled":    utils.IsOSSEnabled(),
-		"max_size":       10,
-		"max_image_size": 5,
-		"max_avatar_size": 2,
-		"allowed_ext":    []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx", ".xls", ".xlsx"},
-		"allowed_image":  []string{".jpg", ".jpeg", ".png", ".gif", ".webp"},
-		"allowed_avatar": []string{".jpg", ".jpeg", ".png", ".webp"},
+	config := UploadConfigResponse{
+		OSSEnabled:    utils.IsOSSEnabled(),
+		MaxSize:       10,
+		MaxImageSize:  5,
+		MaxAvatarSize: 2,
+		AllowedExt:    []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx", ".xls", ".xlsx"},
+		AllowedImage:  []string{".jpg", ".jpeg", ".png", ".gif", ".webp"},
+		AllowedAvatar: []string{".jpg", ".jpeg", ".png", ".webp"},
 	}
 	utils.Success(c, config)
 }

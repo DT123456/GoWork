@@ -10,9 +10,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ============ 系统日志接口 ============
+// SystemLogsResponse 系统日志列表响应
+type SystemLogsResponse struct {
+	List  interface{} `json:"list"`
+	Total int64       `json:"total"`
+	Page  int         `json:"page"`
+	Size  int         `json:"size"`
+}
 
-// GetSystemLogs 获取系统日志列表
+// GetSystemLogs
+// @Summary 获取系统日志列表
+// @Description 分页获取系统日志，支持按用户、模块、操作等条件筛选
+// @Tags 系统日志
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "页码" default(1)
+// @Param page_size query int false "每页数量" default(20)
+// @Param user_id query int false "用户ID"
+// @Param username query string false "用户名"
+// @Param action query string false "操作类型"
+// @Param module query string false "模块"
+// @Param status query int false "状态码"
+// @Param start_time query int false "开始时间戳"
+// @Param end_time query int false "结束时间戳"
+// @Success 200 {object} utils.Response{data=SystemLogsResponse}
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /admin/logs/system [get]
 func GetSystemLogs(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
@@ -53,15 +77,27 @@ func GetSystemLogs(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, gin.H{
-		"list":  logs,
-		"total": total,
-		"page":  page,
-		"size":  pageSize,
+	utils.Success(c, SystemLogsResponse{
+		List:  logs,
+		Total: total,
+		Page:  page,
+		Size:  pageSize,
 	})
 }
 
-// GetSystemLogDetail 获取系统日志详情
+// GetSystemLogDetail
+// @Summary 获取系统日志详情
+// @Description 根据ID获取单条系统日志的详细信息
+// @Tags 系统日志
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "日志ID"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /admin/logs/system/{id} [get]
 func GetSystemLogDetail(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
@@ -78,7 +114,18 @@ func GetSystemLogDetail(c *gin.Context) {
 	utils.Success(c, systemLog)
 }
 
-// GetSystemLogStatistics 获取系统日志统计
+// GetSystemLogStatistics
+// @Summary 获取系统日志统计
+// @Description 统计指定时间范围内的系统日志数量
+// @Tags 系统日志
+// @Produce json
+// @Security BearerAuth
+// @Param start_time query int false "开始时间戳"
+// @Param end_time query int false "结束时间戳"
+// @Success 200 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /admin/logs/system/stats [get]
 func GetSystemLogStatistics(c *gin.Context) {
 	// 默认查询最近7天
 	endTime := time.Now().Unix()
@@ -105,11 +152,26 @@ func GetSystemLogStatistics(c *gin.Context) {
 	utils.Success(c, stats)
 }
 
-// DeleteSystemLogs 删除系统日志
+// DeleteSystemLogsRequest 删除系统日志请求
+type DeleteSystemLogsRequest struct {
+	IDs []uint `json:"ids"`
+}
+
+// DeleteSystemLogs
+// @Summary 删除系统日志
+// @Description 批量删除指定的系统日志
+// @Tags 系统日志
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body DeleteSystemLogsRequest true "日志ID列表"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /admin/logs/system [delete]
 func DeleteSystemLogs(c *gin.Context) {
-	var req struct {
-		IDs []uint `json:"ids"`
-	}
+	var req DeleteSystemLogsRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "参数错误")
@@ -125,9 +187,33 @@ func DeleteSystemLogs(c *gin.Context) {
 	utils.Success(c, "删除成功")
 }
 
-// ============ 访问日志接口 ============
+// AccessLogsResponse 访问日志列表响应
+type AccessLogsResponse struct {
+	List  interface{} `json:"list"`
+	Total int64       `json:"total"`
+	Page  int         `json:"page"`
+	Size  int         `json:"size"`
+}
 
-// GetAccessLogs 获取访问日志列表
+// GetAccessLogs
+// @Summary 获取访问日志列表
+// @Description 分页获取访问日志，支持按用户、请求方法、路径等条件筛选
+// @Tags 访问日志
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "页码" default(1)
+// @Param page_size query int false "每页数量" default(20)
+// @Param user_id query int false "用户ID"
+// @Param method query string false "请求方法"
+// @Param path query string false "请求路径"
+// @Param ip query string false "IP地址"
+// @Param status_code query int false "状态码"
+// @Param start_time query int false "开始时间戳"
+// @Param end_time query int false "结束时间戳"
+// @Success 200 {object} utils.Response{data=AccessLogsResponse}
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /admin/logs/access [get]
 func GetAccessLogs(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
@@ -168,15 +254,26 @@ func GetAccessLogs(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, gin.H{
-		"list":  logs,
-		"total": total,
-		"page":  page,
-		"size":  pageSize,
+	utils.Success(c, AccessLogsResponse{
+		List:  logs,
+		Total: total,
+		Page:  page,
+		Size:  pageSize,
 	})
 }
 
-// GetAccessLogStatistics 获取访问统计
+// GetAccessLogStatistics
+// @Summary 获取访问统计
+// @Description 统计指定时间范围内的访问日志数量和趋势
+// @Tags 访问日志
+// @Produce json
+// @Security BearerAuth
+// @Param start_time query int false "开始时间戳"
+// @Param end_time query int false "结束时间戳"
+// @Success 200 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /admin/logs/access/stats [get]
 func GetAccessLogStatistics(c *gin.Context) {
 	// 默认查询最近7天
 	endTime := time.Now().Unix()
@@ -203,11 +300,26 @@ func GetAccessLogStatistics(c *gin.Context) {
 	utils.Success(c, stats)
 }
 
-// CleanAccessLogs 清理访问日志
+// CleanAccessLogsRequest 清理访问日志请求
+type CleanAccessLogsRequest struct {
+	Days int `json:"days"`
+}
+
+// CleanAccessLogs
+// @Summary 清理访问日志
+// @Description 删除指定天数之前的访问日志
+// @Tags 访问日志
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body CleanAccessLogsRequest false "保留天数" default(30)
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /admin/logs/access [delete]
 func CleanAccessLogs(c *gin.Context) {
-	var req struct {
-		Days int `json:"days"` // 保留多少天的日志
-	}
+	var req CleanAccessLogsRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		req.Days = 30 // 默认保留30天

@@ -10,13 +10,44 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// RegisterRequest 注册请求参数
+type RegisterRequest struct {
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	Captcha   string `json:"captcha" binding:"required"`
+	CaptchaID string `json:"captcha_id" binding:"required"`
+}
+
+// LoginRequest 登录请求参数
+type LoginRequest struct {
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	Captcha   string `json:"captcha" binding:"required"`
+	CaptchaID string `json:"captcha_id" binding:"required"`
+}
+
+// LoginResponse 登录响应数据
+type LoginResponse struct {
+	Token       string   `json:"token"`
+	UserID      uint     `json:"user_id"`
+	Username    string   `json:"username"`
+	Nickname    string   `json:"nickname"`
+	Roles       []string `json:"roles"`
+	Permissions []string `json:"permissions"`
+}
+
+// Register
+// @Summary 用户注册
+// @Description 用户注册接口，需要提供用户名、密码和验证码
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param body body RegisterRequest true "注册信息"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /register [post]
 func Register(c *gin.Context) {
-	var req struct {
-		Username  string `json:"username" binding:"required"`
-		Password  string `json:"password" binding:"required"`
-		Captcha   string `json:"captcha" binding:"required"`
-		CaptchaID string `json:"captcha_id" binding:"required"`
-	}
+	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "参数错误")
 		return
@@ -55,13 +86,19 @@ func Register(c *gin.Context) {
 	utils.Success(c, "注册成功")
 }
 
+// Login
+// @Summary 用户登录
+// @Description 用户登录接口，需要用户名、密码和验证码，返回JWT token
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param body body LoginRequest true "登录信息"
+// @Success 200 {object} utils.Response{data=LoginResponse}
+// @Failure 400 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Router /login [post]
 func Login(c *gin.Context) {
-	var req struct {
-		Username  string `json:"username" binding:"required"`
-		Password  string `json:"password" binding:"required"`
-		Captcha   string `json:"captcha" binding:"required"`
-		CaptchaID string `json:"captcha_id" binding:"required"`
-	}
+	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.W(log.Sprintf("登录参数错误: %v", err))
 		utils.Error(c, "参数错误: "+err.Error())
@@ -113,19 +150,31 @@ func Login(c *gin.Context) {
 
 	log.I(log.Sprintf("用户登录成功: username=%s, user_id=%d", user.Username, user.ID))
 
-	utils.Success(c, gin.H{
-		"token":       token,
-		"user_id":     user.ID,
-		"username":    user.Username,
-		"nickname":    user.Nickname,
-		"roles":       roles,
-		"permissions": permissions,
+	utils.Success(c, LoginResponse{
+		Token:       token,
+		UserID:      user.ID,
+		Username:    user.Username,
+		Nickname:    user.Nickname,
+		Roles:       roles,
+		Permissions: permissions,
 	})
 }
 
+// UserInfo
+// @Summary 获取用户信息
+// @Description 根据用户ID获取用户详细信息
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Success 200 {object} utils.Response{data=models.User}
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /user/info/{id} [get]
 func UserInfo(c *gin.Context) {
 	id := c.Param("id")
-	intId,_ := strconv.Atoi(id)
+	intId, _ := strconv.Atoi(id)
 	user, err := service.GetUserByID(intId)
 	if err != nil {
 		utils.Error(c, "用户不存在")
@@ -134,6 +183,20 @@ func UserInfo(c *gin.Context) {
 	utils.Success(c, user)
 }
 
+// UpdateUser
+// @Summary 更新用户信息
+// @Description 更新指定用户的详细信息
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Param body body models.User true "用户信息"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /user/update/{id} [put]
 func UpdateUser(c *gin.Context) {
 	// 获取当前用户ID
 	currentUserID := utils.GetUserIDFromContext(c)
@@ -171,6 +234,19 @@ func UpdateUser(c *gin.Context) {
 	utils.Success(c, "更新成功")
 }
 
+// DeleteUser
+// @Summary 删除用户
+// @Description 删除指定用户
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 403 {object} utils.Response
+// @Router /user/delete/{id} [delete]
 func DeleteUser(c *gin.Context) {
 	// 获取当前用户ID
 	currentUserID := utils.GetUserIDFromContext(c)

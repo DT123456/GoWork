@@ -73,7 +73,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/test/permission", middleware.JWTAuth(), middleware.PermissionAuth("user:read"))
 
 	// Swagger文档
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/swagger/doc.json")))
 
 	return r
 }
